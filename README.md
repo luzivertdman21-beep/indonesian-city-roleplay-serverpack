@@ -2,32 +2,39 @@
 
 Modular FiveM serverpack project using **ESX Legacy** and **oxmysql**, with Indonesian-language setup documentation and support for user-provided MLOs, vehicles, EUP, maps, and props.
 
-> **Status: staged development.** This repository is not yet a complete production serverpack. The current implemented milestone is the ESX integration foundation. Other resource directories are work in progress and must not be treated as finished gameplay systems. No paid or third-party assets are bundled.
+> **Status: staged development.** This is not a complete production serverpack. Implemented milestones are the ESX integration foundation and a server-authoritative job duty module. Other resource directories are work in progress and are not ensured by the sample server config. No third-party or paid assets are bundled.
 
-## Milestone 1: ESX integration foundation
-- Resource `esx_core` obtains the live ESX player object; it does not create fake/demo player identities or duplicate ESX users.
-- Server callback `icrp_core:getProfile` returns the connected player's ID, name, job, cash, and bank balance from ESX.
-- Client export `exports.esx_core:GetProfile()` and local event `icrp_core:profileUpdated` expose the current profile to other client resources.
-- `/icrpinfo` reports server/job information.
-- Database connection is checked through oxmysql on startup.
-- The server config and install notes explain external ESX dependencies and startup order.
+## Implemented milestones
+
+### ESX integration foundation
+- `esx_core` reads the connected player from ESX (no fake/demo identities or duplicate user persistence).
+- Callback `icrp_core:getProfile` and client export `exports.esx_core:GetProfile()` expose the current ESX profile.
+- `/icrpinfo` reports player ID and current job.
+- Checks the oxmysql connection when the resource starts.
+
+### Job duty state
+- `/duty` toggles a session-only duty state for configured ESX jobs.
+- The server determines the player's job from ESX; clients cannot choose a job or another player's ID.
+- Duty is cleared on disconnect and job change; optional service counts are emitted for configured public-service jobs.
+- Other resources can check `exports.job_manager:IsOnDuty(playerId)` server-side and `exports.job_manager:IsOnDuty()` client-side.
+- Job assignment, grade, salary, society, equipment, garage, and boss permissions are not implemented here; manage job assignment through ESX and do not treat duty state as authorization for unrelated actions.
 
 ## Requirements
-Install and configure these separately; upstream framework resources are not vendored in this repository:
+Install and configure these separately; upstream framework resources are not vendored:
 - FiveM server artifacts and a valid server license key
-- MariaDB/MySQL database
+- MariaDB/MySQL
 - `oxmysql`
 - ESX Legacy `es_extended`
-- ESX identity/character resources if using character creation and multicharacter (for example `esx_identity`, `esx_multicharacter`, and their documented dependencies)
+- ESX identity/character resources if using character creation and multicharacter (for example `esx_identity`, `esx_multicharacter`, plus their documented dependencies)
 
-Use the dependency list and compatibility notes in [`docs/INSTALL.md`](docs/INSTALL.md). Confirm the exact dependencies for the versions you install; do not copy paid assets or resources without permission.
+Check [`docs/INSTALL.md`](docs/INSTALL.md) and the documentation for the exact upstream versions you install.
 
 ## Setup
-1. Clone/download the repository into your server data directory.
-2. Install upstream ESX Legacy resources in `resources/[esx]/` and oxmysql in a resource folder.
-3. Create a database and import [`database/01_schema.sql`](database/01_schema.sql), then [`database/02_seed_jobs.sql`](database/02_seed_jobs.sql), then [`database/03_icrp_extensions.sql`](database/03_icrp_extensions.sql). The schema contains legacy planning tables; it does not replace the schema required by your installed ESX resources.
-4. Set `mysql_connection_string`, `sv_licenseKey`, and RCON settings privately in `server.cfg` or txAdmin. Never commit real credentials.
-5. Ensure the dependencies before `esx_core`, then start the server through txAdmin.
+1. Clone/download this repository into your server data directory.
+2. Install upstream ESX Legacy resources in `resources/[esx]/` and oxmysql in your resources directory.
+3. Import the ESX SQL provided by the installed version. The legacy planning schema in this repository is not a replacement for ESX's schema.
+4. Configure private credentials and `sv_licenseKey` in txAdmin/server.cfg; never commit secrets.
+5. Ensure `oxmysql`, then `es_extended`, then `esx_core` and `job_manager`.
 6. Review [`docs/INSTALL.md`](docs/INSTALL.md) and [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Resource layout
@@ -35,7 +42,7 @@ Use the dependency list and compatibility notes in [`docs/INSTALL.md`](docs/INST
 resources/
 ├── [core]/       # ESX integration foundation
 ├── [esx]/        # Install upstream ESX resources here
-├── [jobs]/       # Work in progress
+├── [jobs]/       # Duty module; other job gameplay is roadmap
 ├── [police]/     # Work in progress
 ├── [ems]/        # Work in progress
 ├── [mechanic]/   # Work in progress
@@ -51,11 +58,4 @@ resources/
 └── [standalone]/ # Utilities
 ```
 
-## Compatibility
-- OneSync is enabled in the sample configuration.
-- Custom assets are optional and are not included.
-- Configure the character limit in both this resource and the chosen multicharacter resource.
-- This project does not ship a generated ZIP artifact. GitHub's **Code → Download ZIP** downloads the current repository snapshot.
-
-## Roadmap
-Character/multicharacter integration and profile persistence are the next milestone; then job modules, inventory/UI, police/EMS, economy/vehicles, housing/business, and admin. Each milestone should be tested against the chosen upstream ESX versions before being called production-ready.
+Custom assets are optional and not included. GitHub **Code → Download ZIP** downloads the current repository snapshot; no generated ZIP has been attached.

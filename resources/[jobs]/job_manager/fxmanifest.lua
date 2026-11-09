@@ -3,14 +3,23 @@ game 'gta5'
 lua54 'yes'
 
 name 'job_manager'
-description 'Job manager foundation for Indonesian City Roleplay'
-author 'Copilot'
-version '1.0.0'
+description 'Server-authoritative duty state for ESX jobs in Indonesian City Roleplay'
+author 'Indonesian City Roleplay'
+version '0.2.0'
+
+shared_scripts {
+  'config.lua'
+}
+
+client_scripts {
+  'client.lua'
+}
 
 server_scripts {
   'server.lua'
 }
 
-client_scripts {
-  'client.lua'
+dependencies {
+  'es_extended',
+  'esx_core'
 }
