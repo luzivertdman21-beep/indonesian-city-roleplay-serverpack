@@ -3,20 +3,24 @@ game 'gta5'
 lua54 'yes'
 
 name 'esx_core'
-description 'Core framework foundation for Indonesian City Roleplay'
-author 'Copilot'
-version '1.0.0'
-
-server_scripts {
-  'config.lua',
-  'server/main.lua'
-}
-
-client_scripts {
-  'config.lua',
-  'client/main.lua'
-}
+description 'ESX Legacy integration layer for Indonesian City Roleplay'
+author 'Indonesian City Roleplay'
+version '0.2.0'
 
 shared_scripts {
   'config.lua'
+}
+
+client_scripts {
+  'client/main.lua'
+}
+
+server_scripts {
+  '@oxmysql/lib/MySQL.lua',
+  'server/main.lua'
+}
+
+dependencies {
+  'es_extended',
+  'oxmysql'
 }

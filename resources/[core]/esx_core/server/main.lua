@@ -1,56 +1,61 @@
-local function logInfo(message)
-  print(('[esx_core] %s'):format(message))
+local ESX = exports['es_extended']:getSharedObject()
+
+local function getAccountBalance(xPlayer, accountName)
+  local account = xPlayer.getAccount(accountName)
+  return account and account.money or 0
 end
 
-MySQL = MySQL or exports['oxmysql']
-
-if not MySQL then
-  logInfo('Warning: oxmysql not detected yet. Server will continue but DB calls may fail until dependency is loaded.')
-end
-
-local function getDb()
-  return exports['oxmysql']
-end
-
-local function bootstrapServer()
-  logInfo('Core server initialised.')
-  logInfo(('Server name: %s'):format(Config.ServerName))
-  logInfo(('Max characters: %s'):format(Config.MaxCharacters))
-end
-
-RegisterNetEvent('esx_core:server:ready')
-AddEventHandler('esx_core:server:ready', function()
-  logInfo('Received ready event from client.')
-end)
-
-RegisterNetEvent('esx_core:server:registerPlayer')
-AddEventHandler('esx_core:server:registerPlayer', function(source, data)
-  local playerId = tonumber(source)
-  local identifier = data.identifier or ('license:%s'):format(GetPlayerIdentifiers(playerId)[1] or 'unknown')
-
-  local result = getDb():querySync('SELECT * FROM users WHERE identifier = ?', { identifier })
-  if not result or #result == 0 then
-    getDb():insert('users', {
-      identifier = identifier,
-      name = data.name or 'Player',
-      money = Config.Economy.cashStart,
-      bank = Config.Economy.bankStart
-    })
+local function buildProfile(source)
+  local xPlayer = ESX.GetPlayerFromId(source)
+  if not xPlayer then
+    return nil
   end
 
-  TriggerClientEvent('esx_core:client:welcome', playerId, {
+  local job = xPlayer.getJob()
+  return {
     serverName = Config.ServerName,
-    message = 'Selamat datang di Indonesian City Roleplay.'
-  })
+    playerId = source,
+    name = xPlayer.getName(),
+    identifier = xPlayer.getIdentifier(),
+    cash = xPlayer.getMoney(),
+    bank = getAccountBalance(xPlayer, 'bank'),
+    job = job and {
+      name = job.name,
+      label = job.label,
+      grade = job.grade,
+      gradeLabel = job.grade_label
+    } or nil
+  }
+end
+
+ESX.RegisterServerCallback('icrp_core:getProfile', function(source, cb)
+  cb(buildProfile(source))
 end)
 
 RegisterCommand('icrpinfo', function(source)
-  local message = ('Server: %s | Max characters: %s | Locale: %s'):format(Config.ServerName, Config.MaxCharacters, Config.Locale)
+  if source == 0 then
+    print(('[icrp_core] %s | ESX integration active'):format(Config.ServerName))
+    return
+  end
+
+  local profile = buildProfile(source)
+  if not profile then return end
+
   TriggerClientEvent('chat:addMessage', source, {
-    color = {255, 255, 255},
+    color = { 70, 160, 255 },
     multiline = false,
-    args = { 'Server', message }
+    args = { 'Kota', ('%s | ID %s | %s'):format(profile.serverName, profile.playerId, profile.job and profile.job.label or 'Tidak bekerja') }
   })
 end, false)
 
-bootstrapServer()
+AddEventHandler('onResourceStart', function(resourceName)
+  if resourceName ~= GetCurrentResourceName() then return end
+
+  MySQL.scalar('SELECT 1')
+    :next(function()
+      print(('[icrp_core] Database connection verified. %s'):format(Config.ServerName))
+    end)
+    :catch(function(err)
+      print(('[icrp_core] Database check failed: %s'):format(err))
+    end)
+end)

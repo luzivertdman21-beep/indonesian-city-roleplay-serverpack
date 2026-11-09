@@ -1,21 +1,39 @@
-local function showWelcome(data)
-  print(('Loaded %s'):format(data.serverName or 'Indonesian City Roleplay'))
+local ESX = exports['es_extended']:getSharedObject()
+local currentProfile
+
+local function requestProfile()
+  ESX.TriggerServerCallback('icrp_core:getProfile', function(profile)
+    if not profile then return end
+
+    currentProfile = profile
+    TriggerEvent('icrp_core:profileUpdated', profile)
+  end)
 end
 
-RegisterNetEvent('esx_core:client:ready')
-AddEventHandler('esx_core:client:ready', function()
-  TriggerServerEvent('esx_core:server:ready')
+RegisterNetEvent('esx:playerLoaded', function()
+  requestProfile()
 end)
 
-Citizen.CreateThread(function()
-  Wait(1000)
-  TriggerServerEvent('esx_core:server:registerPlayer', {
-    identifier = 'license:demo',
-    name = 'Player Demo'
-  })
+RegisterNetEvent('esx:setJob', function()
+  requestProfile()
 end)
 
-RegisterNetEvent('esx_core:client:welcome')
-AddEventHandler('esx_core:client:welcome', function(data)
-  showWelcome(data)
+RegisterNetEvent('esx:onPlayerLogout', function()
+  currentProfile = nil
+  TriggerEvent('icrp_core:profileUpdated', nil)
+end)
+
+RegisterCommand('icrpinfo', function()
+  requestProfile()
+end, false)
+
+exports('GetProfile', function()
+  return currentProfile
+end)
+
+CreateThread(function()
+  Wait(1500)
+  if ESX.IsPlayerLoaded and ESX.IsPlayerLoaded() then
+    requestProfile()
+  end
 end)
