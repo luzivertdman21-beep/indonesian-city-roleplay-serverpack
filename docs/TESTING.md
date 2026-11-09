@@ -1,21 +1,23 @@
 # Checklist Pengujian Server
 
-## Fondasi ESX
-- [ ] `oxmysql` starts and connects to the configured database.
-- [ ] ESX Legacy starts before `esx_core` with no missing exports.
-- [ ] `esx_core` starts without Lua errors.
-- [ ] Connect as a player; ESX loads the player and `/icrpinfo` displays the expected server/job information.
-- [ ] Verify `exports.esx_core:GetProfile()` after player load.
-- [ ] Change job through ESX and verify the profile refreshes.
-- [ ] Logout and verify the client profile is cleared.
+## ESX integration
+- [ ] oxmysql connects and ESX starts successfully.
+- [ ] `esx_core` starts after ESX and `/icrpinfo` shows current player/job.
+- [ ] Profile export refreshes on job change and clears on logout.
 
-## Job duty module
-- [ ] `job_manager` starts after `es_extended` and `esx_core` without errors.
-- [ ] A job listed in `Config.DutyJobs` can use `/duty` and receives the correct status notification.
-- [ ] An unconfigured job receives a denial notification and no duty state change.
-- [ ] Verify another resource can query `exports.job_manager:IsOnDuty(playerId)` server-side.
-- [ ] Verify duty is reset on job change and disconnect.
-- [ ] Confirm ESX salary remains configured only once; this module does not pay salaries.
+## Job duty
+- [ ] A configured ESX job can toggle `/duty`; non-configured jobs cannot.
+- [ ] Duty resets after job change/disconnect.
+- [ ] Salary remains configured only once in ESX.
 
-## Not covered by these milestones
-Character creation/multicharacter persistence, inventory UI, economy transactions, police/EMS gameplay, admin panel, housing/business, phone, and production load/security testing remain unimplemented or unverified. Run tests in a staging environment; no FiveM runtime is available in this repository editing workflow, so do not mark these checks complete without executing them yourself.
+## Bank commands
+- [ ] `icrp_economy` starts after ESX/oxmysql and the `icrp_transactions` table exists.
+- [ ] `/saldo` shows the ESX cash and bank balances.
+- [ ] Valid deposit and withdrawal change balances by the exact amount.
+- [ ] Invalid, fractional, negative, zero, too-large, and unaffordable amounts are rejected.
+- [ ] `/transfer` rejects self, offline/invalid target, invalid amount, and insufficient balance.
+- [ ] Valid transfer debits/credits the correct online players; `/mutasi` shows only the caller's own outbound history.
+- [ ] Cooldown is applied; client-supplied values cannot select another sender.
+
+## Not implemented or not verified
+Character creation/multicharacter UI, inventory, police/EMS gameplay, admin panel, housing/business, phone, and production load/security testing remain incomplete. This repository editing environment does not run FiveM; execute all checks in a staging server before production.
