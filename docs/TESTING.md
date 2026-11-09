@@ -19,5 +19,13 @@
 - [ ] Valid transfer debits/credits the correct online players; `/mutasi` shows only the caller's own outbound history.
 - [ ] Cooldown is applied; client-supplied values cannot select another sender.
 
+## Identity card
+- [ ] Import `database/05_identity_cards.sql` and start `icrp_identity` after ESX/oxmysql.
+- [ ] `/ktp` shows the connected character's identity without exposing the ESX identifier.
+- [ ] `/ktp ID` works for a nearby player in the same routing bucket.
+- [ ] Request for a distant player, invalid ID, or offline ID is rejected.
+- [ ] Test with missing identity fields and confirm the fallback text is displayed.
+- [ ] Reconnect/multicharacter switch and verify each ESX identifier has its own saved RP KTP number.
+
 ## Not implemented or not verified
-Character creation/multicharacter UI, inventory, police/EMS gameplay, admin panel, housing/business, phone, and production load/security testing remain incomplete. This repository editing environment does not run FiveM; execute all checks in a staging server before production.
+Character creation/multicharacter UI, inventory, police/EMS gameplay, admin panel, housing/business, phone, and production load/security testing remain incomplete. This editing environment does not run FiveM; execute all checks in a staging server before production.
